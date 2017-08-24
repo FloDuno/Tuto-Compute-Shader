@@ -1,13 +1,27 @@
 ﻿// Each #kernel tells which function to compile; you can have many kernels
 #pragma kernel CalculateVectors
 
-float4 groupsSize;
+// Used to get the thread number. Can't use an array because of https://issuetracker.unity3d.com/issues/shaders-setfloat-can-not-be-set-for-arrays-in-shaders
+int3 dispatchSize;
+
+// The badly named buffer
 RWStructuredBuffer<half3> output;
 
-// In the (), the x*y*z must be less than 1024 and a multiple of 64 (64, 128, 256, 320 etc.)
+// In the (), the x*y*z must be less than 1024 and a multiple of 64 (64, 128, 256, 320 etc.) because GPU science
 [numthreads(8,8,8)]
 void CalculateVectors (uint3 threadID : SV_DispatchThreadID)
 {
-    int id = threadID.x + threadID.y * 8 * 2 + threadID.z * 8 * 2 * 8 * 2;
+// Doc for SV_DispatchThreadID : https://msdn.microsoft.com/fr-fr/library/windows/desktop/ff471566(v=vs.85).aspx
+    // This is the formula to get the thread number
+    // Credit : http://cheneyshen.com/directcompute-tutorial-for-unity-kernels-and-thread-groups/ 
+    int id = threadID.x + 
+        threadID.y * 8 * dispatchSize[0] + 
+        threadID.z * 8 * dispatchSize[0] * 8 * dispatchSize[1];
+    /*
+    id = threadID.x + 
+        threadID.y * 8 * 2 + 
+        threadID.z * 8 * 2 * 8 * 2;
+    */
+    // Do the magic
     output[id] += half3(8.,8.,8.);
 }
