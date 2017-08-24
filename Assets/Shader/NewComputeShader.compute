@@ -1,0 +1,13 @@
+﻿// Each #kernel tells which function to compile; you can have many kernels
+#pragma kernel CalculateVectors
+
+float4 groupsSize;
+RWStructuredBuffer<half3> output;
+
+// In the (), the x*y*z must be less than 1024 and a multiple of 64 (64, 128, 256, 320 etc.)
+[numthreads(8,8,8)]
+void CalculateVectors (uint3 threadID : SV_DispatchThreadID)
+{
+    int id = threadID.x + threadID.y * 8 * 2 + threadID.z * 8 * 2 * 8 * 2;
+    output[id] += half3(8.,8.,8.);
+}
